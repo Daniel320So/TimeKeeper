@@ -1,6 +1,9 @@
 import inquirer from 'inquirer';
-import fs from 'fs'
-import data from '../../data.json' assert { type: "json" };
+import { readApiConfig, writeApiConfig } from '../utils.js';
+
+let apiData;
+
+
 
 const ACTIONS = {
     EXPORT_EXCEL: "exportExcel",
@@ -18,10 +21,10 @@ const APIKeyPrompt = async function () {
       message: "Please provide your api key",
     },
   ])
-    .then((answers) => {
+    .then(async(answers) => {
       //Update API_KEY in JSON file
-      data.API_KEY = answers.key;
-      fs.writeFile("data.json", JSON.stringify(data), function () {});
+      apiData.API_KEY = answers.key;
+      await writeApiConfig(apiData)
     })
     .catch((error) => {
       console.log(error);
@@ -31,9 +34,10 @@ const APIKeyPrompt = async function () {
 export async function startCli(){
 
     let action;
+    apiData = await readApiConfig();
 
     //Ask the user to setup API key if it is not setup yet
-    if (!data.API_KEY || data.API_KEY === "") await APIKeyPrompt();
+    if (!apiData.API_KEY || apiData.API_KEY === "") await APIKeyPrompt();
 
     //Ask the user for the next actions
     const actionPrompt = inquirer.createPromptModule();
@@ -67,7 +71,7 @@ export async function startCli(){
             break;
         case ACTIONS.SET_API_KEY:
             await APIKeyPrompt();
-            console.log("API Key is updated to", data.API_KEY);
+            console.log("API Key is updated to", apiData.API_KEY);
             break;
         case ACTIONS.SET_WROKSPACE_ID:
             break;
